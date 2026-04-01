@@ -1,56 +1,58 @@
 import streamlit as st
 import google.generativeai as genai
 
-# ১. অ্যাপ কনফিগারেশন
+# ১. পেজ সেটআপ
 st.set_page_config(page_title="Arabic Tarkib AI", layout="wide")
 
-# ২. আপনার API Key সরাসরি কনফিগার করা
+# ২. সরাসরি আপনার দেওয়া API Key
 API_KEY = "AIzaSyAX-YKKLj8BQ2d8HLk1v-LOoqskg2Wmp-o"
 
-# ৩. লেটেস্ট মডেল কনফিগারেশন
-genai.configure(api_key=API_KEY)
-# আমরা এখানে gemini-1.5-pro ব্যবহার করছি যা সবচেয়ে শক্তিশালী
-model = genai.GenerativeModel('gemini-1.5-pro')
+# ৩. নিরাপদভাবে মডেল কনফিগারেশন
+try:
+    genai.configure(api_key=API_KEY)
+    # আপনার লাইব্রেরির সাথে যে মডেল কাজ করবে সেটি খুঁজে বের করা
+    model = genai.GenerativeModel('gemini-pro')
+except Exception as e:
+    st.error(f"Error: {e}")
 
-# ৪. ডিজাইন (CSS)
+# ৪. মাদরাসা নোটের মতো ডিজাইন (CSS)
 st.markdown("""
     <style>
-    .arabic-font { font-size: 35px !important; direction: rtl; text-align: center; background-color: #f0f2f6; padding: 20px; border-radius: 15px; border: 2px solid #2e7d32; }
-    .tarkib-box { border: 2px solid #1b5e20; padding: 15px; border-radius: 10px; background-color: #ffffff; line-height: 1.8; color: black; }
-    .stButton>button { width: 100%; background-color: #2e7d32; color: white; font-weight: bold; height: 3em; border-radius: 10px; }
+    .main { background-color: #f9f9f9; }
+    .arabic-text { font-size: 35px !important; direction: rtl; text-align: center; background-color: #e8f5e9; padding: 20px; border-radius: 10px; border: 2px solid #2e7d32; margin: 10px 0; }
+    .result-box { background-color: #ffffff; padding: 20px; border-radius: 10px; border-left: 5px solid #2e7d32; line-height: 1.8; color: #333; }
+    .stButton>button { width: 100%; background-color: #2e7d32; color: white; border-radius: 8px; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("🌍 গ্লোবাল আরবি তারকিব অ্যানালাইজার (AI)")
-st.write("যেকোনো আরবি বাক্য লিখুন, AI এটি মাদরাসা স্টাইলে বিশ্লেষণ করে দিবে।")
+st.write("আপনার আরবি বাক্যটি নিচে লিখুন।")
 
-# ৫. ইনপুট ও প্রসেসিং
-sentence = st.text_input("আপনার আরবি বাক্যটি এখানে দিন:", placeholder="যেমন: نَصَرَ زَيْدٌ عَمْرًا")
+# ৫. ইনপুট বক্স
+user_input = st.text_input("এখানে আরবি বাক্য দিন:", placeholder="যেমন: نَصَرَ زَيْدٌ عَمْرًا")
 
 if st.button("পূর্ণাঙ্গ তারকিব বের করুন"):
-    if sentence:
-        with st.spinner('AI বিশ্লেষণ করছে, দয়া করে ১০-১৫ সেকেন্ড অপেক্ষা করুন...'):
+    if user_input:
+        with st.spinner('AI তারকিব তৈরি করছে...'):
             try:
-                # সুনির্দিষ্ট ইনস্ট্রাকশন
+                # AI কে পরিষ্কার ইনস্ট্রাকশন দেওয়া
                 prompt = f"""
-                Analyze the Arabic sentence: '{sentence}'
-                Task: Provide a complete 'Tarkib' (Syntactic Analysis) in Bengali.
-                Format: 
-                - Word-by-word analysis.
-                - Grammatical roles (Fail, Maful, etc.).
-                - Final Jumla type.
-                Follow the standard Dars-e-Nizami or Madrasa method.
+                Analyze the Arabic sentence: '{user_input}'
+                Provide a detailed 'Tarkib' (Syntactic Analysis) in Bengali language.
+                Follow the standard Madrasa/Dars-e-Nizami style.
+                1. Word-by-word grammatical role.
+                2. Connections (Fail, Maful, Mudaaf, etc.).
+                3. Final Jumla type.
                 """
-                
                 response = model.generate_content(prompt)
                 
-                st.markdown(f'<div class="arabic-font">{sentence}</div>', unsafe_allow_html=True)
-                st.markdown('<div class="tarkib-box">', unsafe_allow_html=True)
-                st.subheader("বিশ্লেষণ ফলাফল:")
+                # রেজাল্ট দেখানো
+                st.markdown(f'<div class="arabic-text">{user_input}</div>', unsafe_allow_html=True)
+                st.markdown('<div class="result-box">', unsafe_allow_html=True)
+                st.subheader("তারকিব বিশ্লেষণ:")
                 st.write(response.text)
                 st.markdown('</div>', unsafe_allow_html=True)
-                
             except Exception as e:
-                st.error(f"দুঃখিত, একটি টেকনিক্যাল সমস্যা হয়েছে। অনুগ্রহ করে নিশ্চিত করুন যে আপনার API Key টি সচল আছে।")
+                st.error("দুঃখিত, পুনরায় চেষ্টা করুন।")
     else:
         st.warning("আগে একটি আরবি বাক্য লিখুন।")
