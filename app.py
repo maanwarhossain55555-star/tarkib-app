@@ -1,34 +1,35 @@
 import streamlit as st
 import google.generativeai as genai
 
-# সরাসরি আপনার এপিআই কী
-API_KEY = "AIzaSyAX-YKKLj8BQ2d8HLk1v-LOoqskg2Wmp-o"
+st.set_page_config(page_title="Arabic Tarkib AI", layout="wide")
 
-# ১. সরাসরি সংযোগ স্থাপন
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# এখানে আপনার নতুন তৈরি করা API Key-টি বসান
+API_KEY = "আপনার_নতুন_এপিআই_কী_এখানে_দিন" 
 
-# ২. পেজ ডিজাইন
-st.set_page_config(page_title="Arabic Tarkib AI", layout="centered")
-st.title("🟢 সরাসরি আরবি তারকিব অ্যানালাইজার (AI)")
+try:
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"API কনফিগারেশন এরর: {e}")
 
-# ৩. ইনপুট বক্স
+st.title("🌍 গ্লোবাল আরবি তারকিব অ্যানালাইজার (AI)")
+
 user_input = st.text_input("আরবি বাক্যটি লিখুন:", placeholder="যেমন: نَصَرَ زَيْدٌ عَمْرًا")
 
-if st.button("তারকিব বের করুন"):
+if st.button("পূর্ণাঙ্গ তারকিব বের করুন"):
     if user_input:
-        with st.spinner('সরাসরি AI বিশ্লেষণ করছে...'):
+        with st.spinner('AI বিশ্লেষণ করছে...'):
             try:
-                # সরাসরি আমার কাছে (Gemini) নির্দেশ পাঠানো
-                prompt = f"Analyze the Arabic sentence: '{user_input}' and provide a detailed Tarkib in Bengali following Madrasa tradition (Dars-e-Nizami style)."
+                prompt = f"Analyze the Arabic sentence '{user_input}' and provide a detailed Tarkib in Bengali following Madrasa tradition."
                 response = model.generate_content(prompt)
                 
-                # রেজাল্ট প্রদর্শন
-                st.success("বিশ্লেষণ সম্পন্ন!")
-                st.markdown(f"### তারকিব বিশ্লেষণ:\n{response.text}")
-                
+                if response.text:
+                    st.success("বিশ্লেষণ সম্পন্ন!")
+                    st.write(response.text)
+                else:
+                    st.error("AI কোনো ফলাফল তৈরি করতে পারেনি।")
             except Exception as e:
-                # এররটি পরিষ্কারভাবে দেখাবে যাতে আমরা সমাধান করতে পারি
-                st.error(f"যান্ত্রিক ত্রুটি: {str(e)}")
+                # এখানে এরর মেসেজটি দেখা যাবে
+                st.error(f"দুঃখিত, সমস্যাটি হলো: {str(e)}")
     else:
         st.warning("আগে একটি আরবি বাক্য লিখুন।")
