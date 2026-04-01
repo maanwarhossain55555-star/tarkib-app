@@ -1,59 +1,57 @@
 import streamlit as st
 import google.generativeai as genai
 
-# ১. পেজ সেটআপ
-st.set_page_config(page_title="Arabic Tarkib AI", layout="wide")
-
-# ২. আপনার API Key
+# ১. সরাসরি আপনার API Key এবং মডেল সেটআপ
 API_KEY = "AIzaSyAX-YKKLj8BQ2d8HLk1v-LOoqskg2Wmp-o"
+# এটি সরাসরি আমার (Gemini) লেটেস্ট এবং সবচেয়ে ফাস্ট ভার্সন
+MODEL_NAME = "gemini-1.5-flash" 
 
-# ৩. এআই কনফিগারেশন (সফল হওয়ার জন্য শক্তিশালী পদ্ধতি)
-genai.configure(api_key=API_KEY)
-
-# সচল মডেল খুঁজে নেওয়ার ফাংশন
-def get_working_model():
-    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
-    for m in models_to_try:
-        try:
-            model = genai.GenerativeModel(m)
-            # চেক করা মডেলটি সচল কি না
-            model.generate_content("Hi", generation_config={"max_output_tokens": 1})
-            return model
-        except:
-            continue
-    return None
-
-# ৪. মাদরাসা নোটের মতো ডিজাইন (CSS)
+# ২. পেজ ডিজাইন (একদম ক্লিন এবং প্রফেশনাল)
+st.set_page_config(page_title="Arabic Tarkib AI", layout="centered")
 st.markdown("""
     <style>
-    .arabic-text { font-size: 35px !important; direction: rtl; text-align: center; background-color: #f1f8e9; padding: 20px; border-radius: 10px; border: 2px solid #2e7d32; }
-    .result-box { background-color: #ffffff; padding: 20px; border-radius: 10px; border-left: 5px solid #2e7d32; color: black; line-height: 1.8; }
-    .stButton>button { width: 100%; background-color: #2e7d32; color: white; font-weight: bold; border-radius: 10px; height: 50px; }
+    .main { background-color: #ffffff; }
+    .stTextInput>div>div>input { font-size: 20px; text-align: right; direction: rtl; }
+    .stButton>button { background-color: #008000; color: white; width: 100%; border-radius: 10px; height: 50px; font-size: 18px; }
+    .tarkib-box { background-color: #f0fdf4; padding: 20px; border-radius: 15px; border-left: 8px solid #008000; font-size: 18px; line-height: 1.6; }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🌍 গ্লোবাল আরবি তারকিব অ্যানালাইজার (AI)")
+st.title("🟢 সরাসরি আরবি তারকিব অ্যানালাইজার (AI)")
+st.write("নিচে আপনার আরবি বাক্যটি লিখুন। সরাসরি Gemini AI আপনাকে তারকিব করে দিবে।")
 
-# ৫. ইনপুট বক্স
-user_input = st.text_input("আরবি বাক্যটি এখানে লিখুন:", placeholder="যেমন: نَصَرَ زَيْدٌ عَمْرًا")
+# ৩. ইনপুট বক্স
+user_sentence = st.text_input("", placeholder="যেমন: نَصَرَ زَيْدٌ عَمْرًا")
 
-if st.button("পূর্ণাঙ্গ তারকিব বের করুন"):
-    if user_input:
-        with st.spinner('AI তারকিব তৈরি করছে...'):
+if st.button("তারকিব বের করুন"):
+    if user_sentence:
+        with st.spinner('সরাসরি AI এর সাথে সংযোগ করা হচ্ছে...'):
             try:
-                working_model = get_working_model()
-                if working_model:
-                    prompt = f"Analyze the Arabic sentence: '{user_input}' and provide a detailed Tarkib in Bengali following Madrasa tradition (Dars-e-Nizami style)."
-                    response = working_model.generate_content(prompt)
-                    
-                    st.markdown(f'<div class="arabic-text">{user_input}</div>', unsafe_allow_html=True)
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
-                    st.subheader("বিশ্লেষণ ফলাফল:")
-                    st.write(response.text)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                else:
-                    st.error("দুঃখিত, কোনো এআই মডেলের সাথে সংযোগ করা যাচ্ছে না। দয়া করে আপনার API Key সচল আছে কি না চেক করুন।")
+                # সরাসরি কনফিগারেশন
+                genai.configure(api_key=API_KEY)
+                model = genai.GenerativeModel(MODEL_NAME)
+                
+                # সরাসরি আমার (AI) কাছে আপনার প্রশ্ন পাঠানো
+                prompt = f"""
+                You are an expert Arabic grammarian. 
+                Analyze the sentence: '{user_sentence}'
+                Provide a complete and detailed 'Tarkib' (Syntactic Analysis) in Bengali.
+                Follow the standard Madrasa (Dars-e-Nizami) style. 
+                Break down each word's role (Fail, Fail, Maful, etc.) and mention the final Jumla type.
+                """
+                
+                response = model.generate_content(prompt)
+                
+                # রেজাল্ট দেখানো
+                st.success("বিশ্লেষণ সম্পন্ন!")
+                st.markdown(f'<div class="tarkib-box">{response.text}</div>', unsafe_allow_html=True)
+                
             except Exception as e:
-                st.error("পুনরায় চেষ্টা করুন।")
+                # যদি এরর আসে তবে সেটিও সরাসরি দেখাবে
+                st.error(f"যান্ত্রিক ত্রুটি: {str(e)}")
+                st.info("টিপস: আপনার API Key-টি Google AI Studio থেকে পুনরায় চেক করুন।")
     else:
         st.warning("আগে একটি আরবি বাক্য লিখুন।")
+
+st.markdown("---")
+st.caption("আপনার এই অ্যাপটি এখন সরাসরি Google Gemini AI দ্বারা পরিচালিত।")
