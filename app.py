@@ -4,25 +4,19 @@ import google.generativeai as genai
 # ১. অ্যাপ কনফিগারেশন
 st.set_page_config(page_title="Arabic Tarkib AI", layout="wide")
 
-# ২. আপনার API Key সরাসরি বসানো
+# ২. আপনার API Key সরাসরি কনফিগার করা
 API_KEY = "AIzaSyAX-YKKLj8BQ2d8HLk1v-LOoqskg2Wmp-o"
 
-# ৩. লাইব্রেরি ও মডেল সেটআপ (এরর হ্যান্ডলিং সহ)
-try:
-    genai.configure(api_key=API_KEY)
-    # আপনার লাইব্রেরির সাথে মানানসই মডেলটি খোঁজা হচ্ছে
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    try:
-        model = genai.GenerativeModel('gemini-pro')
-    except Exception as e:
-        st.error(f"মডেল সেটআপে সমস্যা: {str(e)}")
+# ৩. লেটেস্ট মডেল কনফিগারেশন
+genai.configure(api_key=API_KEY)
+# আমরা এখানে gemini-1.5-pro ব্যবহার করছি যা সবচেয়ে শক্তিশালী
+model = genai.GenerativeModel('gemini-1.5-pro')
 
 # ৪. ডিজাইন (CSS)
 st.markdown("""
     <style>
     .arabic-font { font-size: 35px !important; direction: rtl; text-align: center; background-color: #f0f2f6; padding: 20px; border-radius: 15px; border: 2px solid #2e7d32; }
-    .tarkib-box { border: 2px solid #1b5e20; padding: 15px; border-radius: 10px; background-color: #ffffff; line-height: 1.8; }
+    .tarkib-box { border: 2px solid #1b5e20; padding: 15px; border-radius: 10px; background-color: #ffffff; line-height: 1.8; color: black; }
     .stButton>button { width: 100%; background-color: #2e7d32; color: white; font-weight: bold; height: 3em; border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
@@ -35,12 +29,19 @@ sentence = st.text_input("আপনার আরবি বাক্যটি এ
 
 if st.button("পূর্ণাঙ্গ তারকিব বের করুন"):
     if sentence:
-        with st.spinner('AI বিশ্লেষণ করছে...'):
+        with st.spinner('AI বিশ্লেষণ করছে, দয়া করে ১০-১৫ সেকেন্ড অপেক্ষা করুন...'):
             try:
-                # প্রম্পট ইনস্ট্রাকশন
-                prompt = f"Analyze the Arabic sentence '{sentence}' and provide a detailed Tarkib in Bengali language following Madrasa tradition."
+                # সুনির্দিষ্ট ইনস্ট্রাকশন
+                prompt = f"""
+                Analyze the Arabic sentence: '{sentence}'
+                Task: Provide a complete 'Tarkib' (Syntactic Analysis) in Bengali.
+                Format: 
+                - Word-by-word analysis.
+                - Grammatical roles (Fail, Maful, etc.).
+                - Final Jumla type.
+                Follow the standard Dars-e-Nizami or Madrasa method.
+                """
                 
-                # ফলাফল জেনারেট করা
                 response = model.generate_content(prompt)
                 
                 st.markdown(f'<div class="arabic-font">{sentence}</div>', unsafe_allow_html=True)
@@ -50,6 +51,6 @@ if st.button("পূর্ণাঙ্গ তারকিব বের করু
                 st.markdown('</div>', unsafe_allow_html=True)
                 
             except Exception as e:
-                st.error("দুঃখিত, আপনার অ্যাপের লাইব্রেরিটি আপডেট করা প্রয়োজন। GitHub-এ requirements.txt ফাইলটি চেক করুন।")
+                st.error(f"দুঃখিত, একটি টেকনিক্যাল সমস্যা হয়েছে। অনুগ্রহ করে নিশ্চিত করুন যে আপনার API Key টি সচল আছে।")
     else:
         st.warning("আগে একটি আরবি বাক্য লিখুন।")
