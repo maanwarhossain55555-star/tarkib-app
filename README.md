@@ -1,2 +1,2 @@
-# tarkib-app
-Arabic Grammar Analyzer
+import streamlit as st
+st.set_page_config(page_title="Anwar Calligraphy", page_icon="🖋️")
