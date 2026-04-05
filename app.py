@@ -1,115 +1,101 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64
+import os
 
-# পেজ কনফিগারেশন
-st.set_page_config(page_title="Thuluth Grunge Calligraphy", layout="centered")
+st.set_page_config(page_title="Marhaban Calligraphy Creator", layout="centered")
 
-# ইন্টারফেসের জন্য CSS
-st.markdown("""
-    <style>
-    .stTextArea textarea { font-size: 18px !important; text-align: right; }
-    .main { background-color: #0e1117; }
-    h1 { color: #ffffff; text-align: center; font-family: 'Arial'; }
-    </style>
-    """, unsafe_allow_html=True)
+# ফন্ট ফাইলটি লোড করার ফাংশন
+def get_font_base64(font_path):
+    with open(font_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
-st.markdown("<h1>Premium Grunge Calligraphy</h1>", unsafe_allow_html=True)
+# ফন্ট ফাইলের নাম নিশ্চিত করুন (আপনার আপলোড করা ফাইল অনুযায়ী)
+font_filename = "MarhabanArabicDEMO-Bold.otf" 
 
-# আরবি টেক্সট ইনপুট
-user_input = st.text_area("আরবি টেক্সট লিখুন:", placeholder="مثال: اَلْحَامِعَةُ الْغَفُوْرِيَّة...", height=120)
+# ফন্টটি যদি একই ফোল্ডারে থাকে তবে এটি কাজ করবে
+if os.path.exists(font_filename):
+    font_base64 = get_font_base64(font_filename)
+else:
+    # ফাইল না পেলে এরর এড়াতে খালি রাখা হলো
+    font_base64 = ""
+    st.warning("ফন্ট ফাইলটি পাওয়া যায়নি। অনুগ্রহ করে নিশ্চিত করুন যে 'MarhabanArabicDEMO-Bold.otf' ফাইলটি আপনার GitHub-এর মূল ফোল্ডারে আছে।")
 
-# ক্যালিগ্রাফি ও ডাউনলোড লজিক (HTML/CSS/JS)
+st.markdown("<h2 style='text-align: center; color: white;'>Marhaban Arabic Calligraphy</h2>", unsafe_allow_html=True)
+
+user_input = st.text_area("আরবি লিখুন:", placeholder="مثال: الجامعیة الغفوریة...", height=100)
+
 html_template = f"""
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Aref+Ruqaa:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        @font-face {{
+            font-family: 'Marhaban';
+            src: url(data:font/opentype;base64,{font_base64});
+        }}
+        
         body {{ 
             background-color: #0e1117; 
+            margin: 0; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; 
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
         }}
         
-        #canvas-area {{
-            /* ডার্ক ব্যাকগ্রাউন্ড, আপনার ছবির মতো */
-            background: #000000;
-            padding: 80px 100px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #222;
-            width: auto;
-            max-width: 95%;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }}
-
-        .grunge-text {{
-            /* 'Aref Ruqaa' ফন্ট Grunge ক্যালিগ্রাফির জন্য সেরা */
-            font-family: 'Aref Ruqaa', serif;
-            font-size: 110px;
-            color: #FFFFFF;
-            line-height: 1.3;
+        #capture-area {{
+            background-color: #000;
+            padding: 60px 100px;
+            border-radius: 15px;
             text-align: center;
-            letter-spacing: -2px;
-            margin: 0;
-            
-            /* -- Grunge / Texture এফেক্ট -- */
-            /* এটিই হলো আপনার কাঙ্ক্ষিত "খসখসে" লুক দেওয়ার মূল CSS */
-            background-image: url('https://raw.githubusercontent.com/Anwar-Bin-Amin/arabic-thuluth-generator/main/texture_mask.png'); /* একটি টেক্সচার ইমেজ ব্যবহার করা হয়েছে */
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent; /* মূল রং transparent হবে যাতে টেক্সচার দেখা যায় */
-            -webkit-text-fill-color: transparent;
-            
-            /* একটি হালকা শ্যাডো ৩D এফেক্ট দেওয়ার জন্য */
-            text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.1);
+            width: fit-content;
+            margin-top: 20px;
+            border: 1px solid #333;
         }}
 
-        .download-btn {{
+        .calligraphy {{
+            font-family: 'Marhaban', sans-serif;
+            font-size: 100px;
+            color: #FFFFFF;
+            line-height: 1.2;
+            margin: 0;
+            white-space: nowrap;
+            /* হালকা ৩D শ্যাডো যা লেখাকে নষ্ট করবে না */
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }}
+
+        .btn-download {{
             margin-top: 30px;
-            margin-bottom: 50px;
-            padding: 15px 35px;
-            background-color: #4CAF50;
+            padding: 12px 30px;
+            background-color: #1e88e5;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            font-size: 16px;
         }}
-        .download-btn:hover {{ background-color: #45a049; }}
     </style>
 </head>
 <body>
 
-    <div id="canvas-area">
-        <div class="grunge-text">{user_input}</div>
+    <div id="capture-area">
+        <p class="calligraphy">{user_input}</p>
     </div>
 
-    <button class="download-btn" onclick="downloadCalligraphy()">HD ডাউনলোড করুন (Photo)</button>
+    <button class="btn-download" onclick="downloadImage()">Download HD Photo</button>
 
     <script>
-        function downloadCalligraphy() {{
-            const area = document.getElementById('canvas-area');
+        function downloadImage() {{
+            const area = document.getElementById('capture-area');
             html2canvas(area, {{ 
-                scale: 3, // হাই কোয়ালিটির জন্য
-                backgroundColor: "#000000" 
+                backgroundColor: "#000000",
+                scale: 3 
             }}).then(canvas => {{
                 let link = document.createElement('a');
-                link.download = 'thuluth_grunge_calligraphy.png';
-                link.href = canvas.toDataURL("image/png");
+                link.download = 'marhaban_calligraphy.png';
+                link.href = canvas.toDataURL();
                 link.click();
             }});
         }}
@@ -118,12 +104,8 @@ html_template = f"""
 </html>
 """
 
-# জেনারেট বাটন
-if st.button("ক্যালিগ্রাফি ডিজাইন দেখুন"):
-    if user_input:
-        components.html(html_template, height=650, scrolling=True)
+if st.button("ডিজাইন তৈরি করুন"):
+    if user_input.strip() == "":
+        st.error("অনুগ্রহ করে কিছু লিখুন!")
     else:
-        st.error("দয়া করে আগে কিছু লিখুন!")
-
-st.markdown("---")
-st.info("💡 **টিপস:** হুবহু আপনার দেওয়া ছবির মতো রেজাল্ট পেতে হলে টাইপ করার সময় হরকত বা চিহ্ন (যের, জবর, পেশ) ব্যবহার করুন। 'Aref Ruqaa' ফন্টটি Grunge ক্যালিগ্রাফির জন্য এই চিহ্নগুলোকে পেলেই কেবল পূর্ণাঙ্গ রূপ দেয়।")
+        components.html(html_template, height=550)
